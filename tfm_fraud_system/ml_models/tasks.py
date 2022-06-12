@@ -8,8 +8,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
 
-from tfm_fraud_system.ml_models.models.neuralnetwork_classifier_model import NeuralNetworkClassifierModel
-from tfm_fraud_system.ml_models.models.svm_classifier_model import SVMClassifierModel
+from tfm_fraud_system.ml_models.ia_models.neuralnetwork_classifier_model import NeuralNetworkClassifierModel
+from tfm_fraud_system.ml_models.ia_models.svm_classifier_model import SVMClassifierModel
 
 @celery_app.task(soft_time_limit=600, time_limit=700)
 def neural_network_classifier_training(packet):
