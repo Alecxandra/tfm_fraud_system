@@ -1,5 +1,7 @@
 from keras import Sequential
 from keras.layers import Dense, Dropout
+from keras.models import model_from_json
+from .. import models
 
 
 class NeuralNetworkClassifierModel:
@@ -44,12 +46,27 @@ class NeuralNetworkClassifierModel:
     """
 
     def __init__(self, settings):
-        self.model = Sequential()
-        print(settings)
         self.settings = settings
+        self.init_presaved_model = False
+        self.db_model = None
+        self.init_model()
 
-    def get_model(self):
-        return self.model
+
+    def init_model(self):
+        # Se verifica si ya existe un modelo previamente almacenado
+
+        if self.settings.get('model_id', None):
+            model_db = models.IAModel.objects.get(id=self.settings.get('model_id'))
+
+            if model_db:
+                self.db_model = model_db
+                self.model = model_from_json(model_db.architecture_model)
+                self.init_presaved_model = True
+                self.model.summary()
+            else:
+                self.model = Sequential()
+        else:
+            self.model = Sequential()
 
     def config_model(self):
         """
@@ -59,44 +76,46 @@ class NeuralNetworkClassifierModel:
         # TODO constans
         # TODO métricas de evaluación
 
-        layers = self.settings.get('layers', {})
+        if not self.init_presaved_model:
 
-        # Input layer
-        input_layer = layers.get('input_layer', {})
+            layers = self.settings.get('layers', {})
 
-        self.model.add(Dense(
-            input_layer.get('units'),
-            activation=input_layer.get('activation', None),
-            kernel_initializer=input_layer.get('kernel', 'glorot_uniform'),
-            kernel_regularizer=input_layer.get('kernel_regularizer', None),
-            input_dim=input_layer.get('input_dim'))
-        )
+            # Input layer
+            input_layer = layers.get('input_layer', {})
 
-        # Hidden layers
-        for layer in layers.get('hidden_layers', []):
+            self.model.add(Dense(
+                input_layer.get('units'),
+                activation=input_layer.get('activation', None),
+                kernel_initializer=input_layer.get('kernel', 'glorot_uniform'),
+                kernel_regularizer=input_layer.get('kernel_regularizer', None),
+                input_dim=input_layer.get('input_dim'))
+            )
 
-            if layer.get('type', '') == 'DENSE':
-                self.model.add(Dense(
-                    layer.get('units'),
-                    activation=layer.get('activation', None),
-                    kernel_initializer=layer.get('kernel', None),
-                    kernel_regularizer=layer.get('kernel_regularizer', None))
-                )
+            # Hidden layers
+            for layer in layers.get('hidden_layers', []):
 
-            if layer.get('type', '') == 'DROPOUT':
-                self.model.add(
-                    Dropout(layer.get('rate'))
-                )
+                if layer.get('type', '') == 'DENSE':
+                    self.model.add(Dense(
+                        layer.get('units'),
+                        activation=layer.get('activation', None),
+                        kernel_initializer=layer.get('kernel', None),
+                        kernel_regularizer=layer.get('kernel_regularizer', None))
+                    )
 
-        # Output layer
-        output_layer = layers.get('output_layer', {})
+                if layer.get('type', '') == 'DROPOUT':
+                    self.model.add(
+                        Dropout(layer.get('rate'))
+                    )
 
-        self.model.add(Dense(
-            output_layer.get('units'),
-            activation=output_layer.get('activation', None),
-            kernel_initializer=output_layer.get('kernel', None),
-            kernel_regularizer=output_layer.get('kernel_regularizer', None)),
-        )
+            # Output layer
+            output_layer = layers.get('output_layer', {})
+
+            self.model.add(Dense(
+                output_layer.get('units'),
+                activation=output_layer.get('activation', None),
+                kernel_initializer=output_layer.get('kernel', None),
+                kernel_regularizer=output_layer.get('kernel_regularizer', None)),
+            )
 
     def compilation(self):
         compilation = self.settings.get('compilation', {})
@@ -117,4 +136,17 @@ class NeuralNetworkClassifierModel:
 
     def predict(self, x_test):
         return self.model.predict(x_test)
+
+    def get_init_presaved_model(self):
+        return self.init_presaved_model
+
+    def get_model(self):
+        return self.model
+
+
+    def set_db_model(self, model):
+        self.db_model = model
+
+    def get_db_model(self):
+        return self.db_model
 

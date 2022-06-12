@@ -33,6 +33,8 @@ services:
     volumes:
       - tfm_fraud_system_local_postgres_data:/var/lib/postgresql/data:Z
       - tfm_fraud_system_local_postgres_data_backups:/backups:z
+    ports:
+      - "5450:5432"
     env_file:
       - ./.envs/.local/.postgres
 

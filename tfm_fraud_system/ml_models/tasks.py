@@ -1,6 +1,7 @@
 from config import celery_app
 
 import os
+import uuid
 import pandas as pd
 import numpy as np
 from django.conf import settings
@@ -10,7 +11,8 @@ from sklearn.metrics import auc
 
 from tfm_fraud_system.ml_models.ia_models.neuralnetwork_classifier_model import NeuralNetworkClassifierModel
 from tfm_fraud_system.ml_models.ia_models.svm_classifier_model import SVMClassifierModel
-
+from . import models
+from . import constants
 @celery_app.task(soft_time_limit=600, time_limit=700)
 def neural_network_classifier_training(packet):
 
@@ -49,6 +51,40 @@ def neural_network_classifier_training(packet):
         auc_result = auc(fpr, tpr)
 
         print(f"[tasks][neural_network_classifier_training] Valor AUC: {auc_result}")
+
+        # Saving model changes
+
+        if not nn_model.get_init_presaved_model():
+            data = {
+                'name': packet.get('model_name'),
+                'type': constants.IAModel.Type.NNW_CLASSIFIER,
+                'environment': packet.get('environment'),
+                'settings': packet,
+               'architecture_model': nn_model.get_model().to_json()
+            }
+            ia_model = models.IAModel.create(data)
+
+            nn_model.set_db_model(ia_model)
+
+            print(f"[tasks][neural_network_classifier_training] Modelo almacenado: {ia_model.id}")
+
+        # Save training
+
+        training_model = nn_model.get_model()
+        db_model = nn_model.get_db_model()
+
+        weights_url = os.path.join(settings.STATIC_ROOT, f"results/nnc/{uuid.uuid1()}.h5")
+        training_model.save_weights(weights_url)
+
+
+        training_data = {
+            'status': constants.IATraining.Status.SUCCEEDED,
+            'weights_url': weights_url,
+            'model_id': db_model.id
+        }
+
+        models.IATraining.create(training_data)
+
 
     except Exception as error:
         print(f"[tasks][neural_network_classifier_training] Ocurrió un error en el proceso {str(error)}")
