@@ -1,6 +1,7 @@
 from config import celery_app
 
 import os
+import pickle
 import uuid
 import pandas as pd
 import numpy as np
@@ -60,7 +61,7 @@ def neural_network_classifier_training(packet):
                 'type': constants.IAModel.Type.NNW_CLASSIFIER,
                 'environment': packet.get('environment'),
                 'settings': packet,
-               'architecture_model': nn_model.get_model().to_json()
+                'architecture_model': nn_model.get_model().to_json()
             }
             ia_model = models.IAModel.create(data)
 
@@ -127,6 +128,38 @@ def svm_classifier_training(packet):
         auc_result = auc(fpr, tpr)
 
         print(f"[tasks][svm_classifier_training] Valor AUC: {auc_result}")
+
+
+        # Saving model changes
+        if not svm_model.get_init_presaved_model():
+            data = {
+                'name': packet.get('model_name'),
+                'type': constants.IAModel.Type.SVM_CLASSIFIER,
+                'environment': packet.get('environment'),
+                'settings': packet,
+                'architecture_model': {}
+            }
+
+            ia_model = models.IAModel.create(data)
+            svm_model.set_db_model(ia_model)
+
+            print(f"[tasks][svm_classifier_training] Modelo almacenado: {ia_model.id}")
+
+        # Saving training
+        training_model = svm_model.get_model()
+        db_model = svm_model.get_db_model()
+
+        weights_url = os.path.join(settings.STATIC_ROOT, f"results/svm/{uuid.uuid1()}.sav")
+        pickle.dump(training_model, open(weights_url, 'wb'))
+
+
+        training_data = {
+            'status': constants.IATraining.Status.SUCCEEDED,
+            'weights_url': weights_url,
+            'model_id': db_model.id
+        }
+
+        models.IATraining.create(training_data)
 
     except Exception as error:
         print(f"[tasks][svm_classifier_training] Ocurrió un error en el proceso {str(error)}")
