@@ -54,19 +54,28 @@ class NeuralNetworkClassifierModel:
 
     def init_model(self):
         # Se verifica si ya existe un modelo previamente almacenado
+        try:
+            if self.settings.get('model_id', None):
+                model_db = models.IAModel.objects.get(id=self.settings.get('model_id'))
 
-        if self.settings.get('model_id', None):
-            model_db = models.IAModel.objects.get(id=self.settings.get('model_id'))
+                if model_db:
+                    self.db_model = model_db
+                    self.model = model_from_json(model_db.architecture_model)
+                    self.init_presaved_model = True
+                    self.model.summary()
 
-            if model_db:
-                self.db_model = model_db
-                self.model = model_from_json(model_db.architecture_model)
-                self.init_presaved_model = True
-                self.model.summary()
+                    # se cargan los pesos
+                    weights = self.load_weights()
+                    self.model.load_weights(weights.weights_url)
+                else:
+                    self.model = Sequential()
             else:
                 self.model = Sequential()
-        else:
-            self.model = Sequential()
+
+        except Exception as error:
+            print("[ml_models][NeuralNetworkClassifierModel] Ocurrió un error al cargar el modelo")
+            print(error)
+
 
     def config_model(self):
         """
@@ -117,6 +126,7 @@ class NeuralNetworkClassifierModel:
                 kernel_regularizer=output_layer.get('kernel_regularizer', None)),
             )
 
+
     def compilation(self):
         compilation = self.settings.get('compilation', {})
 
@@ -134,11 +144,14 @@ class NeuralNetworkClassifierModel:
             epochs=self.settings.get('training', {}).get('epochs', 10)
         )
 
+
     def predict(self, x_test):
         return self.model.predict(x_test)
 
+
     def get_init_presaved_model(self):
         return self.init_presaved_model
+
 
     def get_model(self):
         return self.model
@@ -149,4 +162,18 @@ class NeuralNetworkClassifierModel:
 
     def get_db_model(self):
         return self.db_model
+
+    def load_weights(self):
+        # se obtiene el entrenamiento más reciente
+        try:
+            last_training = models.IATraining.objects\
+                .filter(model_id=self.db_model.id)\
+                .order_by('created_at')\
+                .latest('created_at')
+
+            return last_training
+
+        except Exception as error:
+            return None
+
 

@@ -77,7 +77,10 @@ class IATraining(models.Model):
 
         except Exception as error:
             print("[models][IATraining] Ocurrió un error al salvar el modelo")
-            prnit(error)
+            print(error)
+
+
+
 
 
 
