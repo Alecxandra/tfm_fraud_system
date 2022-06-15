@@ -83,8 +83,8 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     "tfm_fraud_system.users",
-    "tfm_fraud_system.ml_models"
-    # Your stuff: custom apps go here
+    "tfm_fraud_system.ml_models",
+    "tfm_fraud_system.data_processor"
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
