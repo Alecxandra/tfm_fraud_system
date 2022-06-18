@@ -284,4 +284,7 @@ vendors.js
 
 .idea
 
+data-test/
+data/
+
 
