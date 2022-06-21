@@ -121,11 +121,11 @@ if __name__ == '__main__':
 
     # if no customers file provided, generate a customers file
     if customer_file is None and num_cust is not None:
-        if os.path.exists(customers_out_file):
-            # prompt user to overwrite
-            agree = input(f"File {customers_out_file} already exists. Overwrite? (y/N)")
-            if agree.lower() != 'y':
-                exit(1)
+        # if os.path.exists(customers_out_file):
+        #     # prompt user to overwrite
+        #     agree = input(f"File {customers_out_file} already exists. Overwrite? (y/N)")
+        #     if agree.lower() != 'y':
+        #         exit(1)
         datagen_customers(num_cust, seed_num, config, customers_out_file)
     elif customer_file is None:
         print('Either a customer file or a number of customers to create must be provided')

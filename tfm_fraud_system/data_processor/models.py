@@ -4,6 +4,11 @@ from . import constants
 import uuid
 
 class Customer(models.Model):
+    STATUS_CHOICES = (
+        (constants.Transaction.Environment.TESTING, 'Pruebas'),
+        (constants.Transaction.Environment.PRODUCTON, 'Producción'),
+    )
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     identifier = models.CharField(max_length=30)
     cc_number = models.CharField(max_length=20)
@@ -19,6 +24,7 @@ class Customer(models.Model):
     lat = models.FloatField(default=0)
     job = models.CharField(max_length=255)
     profile = models.CharField(max_length=255)
+    environment = models.CharField(max_length=255, default=constants.Transaction.Environment.TESTING)
 
 
 class Transaction(models.Model):

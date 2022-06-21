@@ -2,7 +2,7 @@ from config import celery_app
 import os
 import pandas as pd
 from .models import Customer, Transaction
-from .constants import Transaction
+from .import constants
 
 
 
@@ -57,7 +57,7 @@ def save_customers():
                 'merch_lat': t_row['merch_lat'],
                 'merch_long': t_row['merch_long'],
                 'customer': current_customer,
-                'environment': Transaction.Environment.TESTING
+                'environment': constants.Transaction.Environment.TESTING
             }
 
             Transaction.objects.create(**transaction_data)
