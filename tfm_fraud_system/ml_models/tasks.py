@@ -131,7 +131,7 @@ def svm_classifier_training(packet):
 
 
         # Saving model changes
-        if not svm_model.get_init_presaved_model():
+        if not svm_model.get_db_model():
             data = {
                 'name': packet.get('model_name'),
                 'type': constants.IAModel.Type.SVM_CLASSIFIER,

@@ -90,12 +90,16 @@ class SVMClassifierModel:
                 model_db = models.IAModel.objects.get(id=self.settings.get('model_id'))
 
                 if model_db:
+
                     self.db_model = model_db
                     weights = self.load_weights()
-                    self.model = pickle.load(open(weights.weights_url, 'rb'))
-                    self.init_presaved_model = True
 
-                    print("[ml_models][SVMClassifierModel] Modelo cargado")
+                    if weights:
+                        self.model = pickle.load(open(weights.weights_url, 'rb'))
+                        self.init_presaved_model = True
+                        print("[ml_models][SVMClassifierModel] Modelo cargado")
+                    else:
+                        self.model = None
                 else:
                     self.model = None
             else:

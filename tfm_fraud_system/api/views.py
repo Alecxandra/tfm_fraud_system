@@ -116,11 +116,18 @@ class IATrainingApiView(APIView):
 
         if ia_model.type == constants.IAModel.Type.SVM_CLASSIFIER:
 
+            settings = ia_model.settings
+            settings['kernel'] = serializer.validated_data.get('compilation').get('kernel')
+
+            # Save training data
+            ia_model.settings = settings
+            ia_model.save()
+
             packet = {
                 "model_id": ia_model.id,
                 "model_name": ia_model.name,
                 "environment": ia_model.environment,
-                "kernel": ia_model.settings.kernel
+                "kernel": ia_model.settings.get('kernel')
             }
 
             # se envía el paquete a celery
