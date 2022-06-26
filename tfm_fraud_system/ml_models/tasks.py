@@ -14,7 +14,7 @@ from tfm_fraud_system.ml_models.ia_models.neuralnetwork_classifier_model import 
 from tfm_fraud_system.ml_models.ia_models.svm_classifier_model import SVMClassifierModel
 from . import models
 from . import constants
-@celery_app.task(soft_time_limit=600, time_limit=700)
+@celery_app.task(soft_time_limit=7200, time_limit=7200)
 def neural_network_classifier_training(packet):
 
     try:
@@ -91,7 +91,7 @@ def neural_network_classifier_training(packet):
         print(f"[tasks][neural_network_classifier_training] Ocurrió un error en el proceso {str(error)}")
 
 
-@celery_app.task(soft_time_limit=600, time_limit=700)
+@celery_app.task(soft_time_limit=7200, time_limit=7200)
 def svm_classifier_training(packet):
 
     try:

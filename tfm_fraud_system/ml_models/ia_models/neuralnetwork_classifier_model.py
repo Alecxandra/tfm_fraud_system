@@ -1,3 +1,5 @@
+import json
+
 from keras import Sequential
 from keras.layers import Dense, Dropout
 from keras.models import model_from_json
@@ -60,13 +62,19 @@ class NeuralNetworkClassifierModel:
 
                 if model_db:
                     self.db_model = model_db
-                    self.model = model_from_json(model_db.architecture_model)
-                    self.init_presaved_model = True
-                    self.model.summary()
+                    architecture_model = json.loads(model_db.architecture_model)
 
-                    # se cargan los pesos
-                    weights = self.load_weights()
-                    self.model.load_weights(weights.weights_url)
+                    if architecture_model:
+                        print("entra en acquitec")
+                        self.model = model_from_json(model_db.architecture_model)
+                        self.init_presaved_model = True
+                        self.model.summary()
+
+                        # se cargan los pesos
+                        weights = self.load_weights()
+                        self.model.load_weights(weights.weights_url)
+                    else:
+                        self.model = Sequential()
                 else:
                     self.model = Sequential()
             else:

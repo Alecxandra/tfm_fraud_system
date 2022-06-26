@@ -80,7 +80,20 @@ class IATraining(models.Model):
             print(error)
 
 
+class IATrainingResults(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    accuracy = models.DecimalField( max_digits=19, decimal_places=10, blank=True, null=True)
+    auc = models.DecimalField(max_digits=19, decimal_places=10, blank=True, null=True)
+    loss = models.DecimalField(max_digits=19, decimal_places=10, blank=True, null=True)
+    val_loss = models.DecimalField(max_digits=19, decimal_places=10, blank=True, null=True)
+    precision = models.DecimalField(max_digits=19, decimal_places=10, blank=True, null=True)
+    recall = models.DecimalField(max_digits=19, decimal_places=10, blank=True, null=True)
+    settings = pgfields.JSONField(blank=True, default='{}')
+    created_at = models.DateTimeField(auto_now_add=True)
+    training_model = models.ForeignKey(IATraining, on_delete=models.CASCADE)
 
+    class Meta:
+        verbose_name = 'IATrainingResults'
 
 
 
