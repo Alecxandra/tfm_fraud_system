@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 from django.conf import settings
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import roc_curve, auc, accuracy_score, recall_score, precision_score
 
 from tfm_fraud_system.ml_models.ia_models.neuralnetwork_classifier_model import NeuralNetworkClassifierModel
 from tfm_fraud_system.ml_models.ia_models.svm_classifier_model import SVMClassifierModel
@@ -190,10 +190,35 @@ def svm_classifier_training(packet):
             'model_id': db_model.id
         }
 
-        models.IATraining.create(training_data)
+        training_obj = models.IATraining.create(training_data)
+
+        # ROC curve
+        fp_rate, tp_rate, thresholds = roc_curve(y_test, target_predicted)
+
+        fp_rate_list = fp_rate.tolist()
+        tp_rate_list = tp_rate.tolist()
+
+        accuracy_value = accuracy_score(y_test, target_predicted)
+        recall_score_value = recall_score(y_test, target_predicted)
+        precision_score_value = precision_score(y_test, target_predicted)
+
+        training_results_data = {
+            'accuracy': accuracy_value,
+            'auc': auc_result,
+            'precision': precision_score_value,
+            'recall': recall_score_value,
+            'settings': {
+                'roc_curve': {
+                    'fp_rate': json.dumps(fp_rate_list),
+                    'tp_rate': json.dumps(tp_rate_list)
+                }
+            },
+            'training_model_id': training_obj.id
+        }
+
+        models.IATrainingResults.create(training_results_data)
+        print(f"[tasks][svm_classifier_training] Se guardan datos de entrenamiento")
 
     except Exception as error:
         print(f"[tasks][svm_classifier_training] Ocurrió un error en el proceso {str(error)}")
-
-
 
