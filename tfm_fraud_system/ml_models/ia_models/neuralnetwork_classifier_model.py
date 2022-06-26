@@ -106,7 +106,7 @@ class NeuralNetworkClassifierModel:
                 activation=input_layer.get('activation', None),
                 kernel_initializer=input_layer.get('kernel', 'glorot_uniform'),
                 kernel_regularizer=input_layer.get('kernel_regularizer', None),
-                input_dim=input_layer.get('input_dim'))
+                input_dim=20) # TODO QUITAR ESTO
             )
 
             # Hidden layers

@@ -5,31 +5,42 @@ import os
 import pickle
 import uuid
 import pandas as pd
-import numpy as np
 from django.conf import settings
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_curve, auc, accuracy_score, recall_score, precision_score
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 
 from tfm_fraud_system.ml_models.ia_models.neuralnetwork_classifier_model import NeuralNetworkClassifierModel
 from tfm_fraud_system.ml_models.ia_models.svm_classifier_model import SVMClassifierModel
 from . import models
 from . import constants
+from ..data_processor.models import Transaction
+
 
 
 @celery_app.task(soft_time_limit=7200, time_limit=7200)
 def neural_network_classifier_training(packet):
 
     try:
-        # TODO resolver lo del dataset (por ahora quemado)
-        file_path = os.path.join(settings.STATIC_ROOT, 'testing_data/creditcard.csv')
-        dataframe = pd.read_csv(file_path)
-        print(dataframe.head())
 
-        # Training and test datasets
-        features = dataframe.iloc[:, 0:30]
-        target = dataframe.iloc[:, 30]
+        transactions = Transaction.objects.select_related('customer').all()
 
-        x_train, x_test, y_train, y_test = train_test_split(features, target, test_size=0.3)
+        dataset = [transaction.to_representation() for transaction in transactions]
+        dataframe = pd.DataFrame(dataset)
+
+        Y_col = 'is_fraud'
+        X_cols = dataframe.loc[:, dataframe.columns != Y_col].columns
+
+        # Encode string variables
+        x_dataframe = dataframe[X_cols].apply(LabelEncoder().fit_transform)
+        print(x_dataframe.head())
+
+        # Data normalization
+        standarScaler = StandardScaler()
+        x_normalize = standarScaler.fit_transform(x_dataframe)
+
+        # TODO SACAR TEST SIZE DEL PAQUETE
+        x_train, x_test, y_train, y_test = train_test_split(x_normalize, dataframe[Y_col], test_size=0.5)
 
         # Configuración modelo
 
@@ -49,6 +60,8 @@ def neural_network_classifier_training(packet):
 
         print("[tasks][neural_network_classifier_training] Predicción y resultados")
         target_predicted = nn_model.predict(x_test)
+
+        # loss, accuracy, f1_score, precision, recall = nn_model.get_model().evaluate(x_test, y_test, verbose=0)
 
         fpr, tpr, thresholds = roc_curve(y_test, target_predicted)
         auc_result = auc(fpr, tpr)
@@ -126,18 +139,25 @@ def neural_network_classifier_training(packet):
 def svm_classifier_training(packet):
 
     try:
-        # TODO resolver lo del dataset (por ahora quemado)
-        file_path = os.path.join(settings.STATIC_ROOT, 'testing_data/creditcard.csv')
-        dataframe = pd.read_csv(file_path)
-        print(dataframe.head())
 
-        # Training and test datasets
-        dataset = dataframe.reset_index()
+        transactions = Transaction.objects.select_related('customer').all()
 
-        x = np.nan_to_num(dataset.drop('Class', axis=1))
-        y = np.nan_to_num(dataset['Class'])
+        dataset = [ transaction.to_representation() for transaction in transactions]
+        dataframe = pd.DataFrame(dataset)
 
-        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3)
+
+        Y_col = 'is_fraud'
+        X_cols = dataframe.loc[:, dataframe.columns != Y_col].columns
+
+        # Encode string variables
+        x_dataframe = dataframe[X_cols].apply(LabelEncoder().fit_transform)
+
+        # Data normalization
+        standarScaler = StandardScaler()
+        x_normalize = standarScaler.fit_transform(x_dataframe)
+
+        # TODO SACAR TEST SIZE DEL PAQUETE
+        x_train, x_test, y_train, y_test = train_test_split(x_normalize, dataframe[Y_col], test_size=0.3)
 
         # Configuración modelo
 
@@ -221,4 +241,5 @@ def svm_classifier_training(packet):
 
     except Exception as error:
         print(f"[tasks][svm_classifier_training] Ocurrió un error en el proceso {str(error)}")
+        print(error)
 

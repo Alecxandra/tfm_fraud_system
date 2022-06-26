@@ -46,6 +46,32 @@ class Transaction(models.Model):
     environment = models.CharField(max_length=255)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
 
+    def to_representation(self):
+        return {
+            'transaction_number': self.transaction_number,
+            'transaction_date': self.transaction_date,
+            'unix_time': self.unix_time,
+            'category': self.category,
+            'amt': self.amt,
+            'is_fraud': self.is_fraud,
+            'merchant': self.merchant,
+            'merch_lat': self.merch_lat,
+            'merch_long': self.merch_long,
+            'customer_identifier': self.customer.identifier,
+            'cc_number': self.customer.cc_number,
+            'account_number': self.customer.account_number,
+            'first_name': self.customer.first_name,
+            'last_name': self.customer.last_name,
+            'gender': self.customer.gender,
+            'street': self.customer.street,
+            'city': self.customer.city,
+            'state': self.customer.state,
+            'lon': self.customer.lon,
+            'lat': self.customer.lat,
+            'job': self.customer.job,
+
+        }
+
 
 
 
