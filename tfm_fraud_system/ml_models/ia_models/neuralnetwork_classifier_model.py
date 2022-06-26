@@ -52,6 +52,7 @@ class NeuralNetworkClassifierModel:
         self.init_presaved_model = False
         self.db_model = None
         self.init_model()
+        self.history = None
 
 
     def init_model(self):
@@ -141,15 +142,16 @@ class NeuralNetworkClassifierModel:
         self.model.compile(
             optimizer=compilation.get('optimizer', 'adam'),
             loss=compilation.get('loss', 'binary_crossentropy'),
-            metrics=['accuracy'])
+            metrics=['accuracy', 'AUC', 'Precision', 'Recall'])
 
 
-    def training(self, x_train, y_train):
-        self.model.fit(
+    def training(self, x_train, y_train, x_test, y_test):
+        self.history = self.model.fit(
             x_train,
             y_train,
             batch_size=self.settings.get('training', {}).get('batch_size', 10),
-            epochs=self.settings.get('training', {}).get('epochs', 10)
+            epochs=self.settings.get('training', {}).get('epochs', 10),
+            validation_data=(x_test, y_test)
         )
 
 
@@ -183,5 +185,8 @@ class NeuralNetworkClassifierModel:
 
         except Exception as error:
             return None
+
+    def get_history(self):
+        return self.history
 
 

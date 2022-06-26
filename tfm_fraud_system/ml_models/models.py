@@ -75,6 +75,8 @@ class IATraining(models.Model):
             )
             ia_training.save()
 
+            return ia_training
+
         except Exception as error:
             print("[models][IATraining] Ocurrió un error al salvar el modelo")
             print(error)
@@ -94,6 +96,26 @@ class IATrainingResults(models.Model):
 
     class Meta:
         verbose_name = 'IATrainingResults'
+
+    @classmethod
+    def create(cls, data, **kwargs):
+        try:
+            ia_training_results= IATrainingResults(
+                accuracy=data.get('accuracy'),
+                auc=data.get('auc'),
+                loss=data.get('loss'),
+                val_loss=data.get('val_loss'),
+                precision=data.get('precision'),
+                recall=data.get('recall'),
+                settings=data.get('settings'),
+                training_model_id=data.get('training_model_id')
+            )
+
+            ia_training_results.save()
+
+        except Exception as error:
+            print("[models][IATrainingResults] Ocurrió un error al salvar el modelo")
+            print(error)
 
 
 

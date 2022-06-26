@@ -1,5 +1,6 @@
 from config import celery_app
 
+import json
 import os
 import pickle
 import uuid
@@ -7,13 +8,14 @@ import pandas as pd
 import numpy as np
 from django.conf import settings
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import roc_curve
-from sklearn.metrics import auc
+from sklearn.metrics import roc_curve, auc
 
 from tfm_fraud_system.ml_models.ia_models.neuralnetwork_classifier_model import NeuralNetworkClassifierModel
 from tfm_fraud_system.ml_models.ia_models.svm_classifier_model import SVMClassifierModel
 from . import models
 from . import constants
+
+
 @celery_app.task(soft_time_limit=7200, time_limit=7200)
 def neural_network_classifier_training(packet):
 
@@ -41,7 +43,7 @@ def neural_network_classifier_training(packet):
         nn_model.compilation()
 
         print("[tasks][neural_network_classifier_training] Inicio del entrenamiento")
-        nn_model.training(x_train, y_train)
+        nn_model.training(x_train, y_train, x_test, y_test)
 
         print("[tasks][neural_network_classifier_training] Finalización del entrenamiento")
 
@@ -84,7 +86,36 @@ def neural_network_classifier_training(packet):
             'model_id': db_model.id
         }
 
-        models.IATraining.create(training_data)
+        training_obj = models.IATraining.create(training_data)
+
+        # Save training results
+        model_history = nn_model.get_history()
+
+        # ROC curve
+        fp_rate, tp_rate, thresholds = roc_curve(y_test, target_predicted)
+
+        fp_rate_list = fp_rate.tolist()
+        tp_rate_list = tp_rate.tolist()
+
+
+        training_results_data = {
+            'accuracy': model_history.history['accuracy'][0],
+            'auc': model_history.history['auc'][0],
+            'loss': model_history.history['loss'][0],
+            'val_loss': model_history.history['val_loss'][0],
+            'precision': model_history.history['precision'][0],
+            'recall': model_history.history['recall'][0],
+            'settings': {
+                'roc_curve': {
+                    'fp_rate': json.dumps(fp_rate_list),
+                    'tp_rate': json.dumps(tp_rate_list)
+                }
+            },
+            'training_model_id': training_obj.id
+        }
+
+        models.IATrainingResults.create(training_results_data)
+        print(f"[tasks][neural_network_classifier_training] Se guardan datos de entrenamiento")
 
 
     except Exception as error:
