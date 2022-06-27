@@ -34,3 +34,7 @@ class IAModelTrainingSerializer(serializers.Serializer):
     compilation = serializers.JSONField(required=True)
     training = serializers.JSONField(required=True)
     model_id = serializers.CharField(required=True)
+
+
+class ResultsDataSerializer(serializers.Serializer):
+    model_id = serializers.CharField(required=True)

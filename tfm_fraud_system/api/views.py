@@ -7,7 +7,7 @@ from datetime import datetime
 from ..data_processor.tasks import generate_test_data
 from ..ml_models.tasks import svm_classifier_training, neural_network_classifier_training
 from ..data_processor.models import Customer, Transaction
-from ..ml_models.models import IAModel
+from ..ml_models.models import IAModel, IATrainingResults, IATraining
 from ..ml_models import constants
 from . import serializers
 
@@ -113,7 +113,6 @@ class IATrainingApiView(APIView):
             neural_network_classifier_training.apply_async(args=[packet])
 
 
-
         if ia_model.type == constants.IAModel.Type.SVM_CLASSIFIER:
 
             settings = ia_model.settings
@@ -138,5 +137,34 @@ class IATrainingApiView(APIView):
             status=status.HTTP_200_OK,
             data={
                 'message': 'Se esta realizando el entrenamiento'
+            }
+        )
+
+
+class ResultsDataApiView(APIView):
+    serializer_class = serializers.ResultsDataSerializer
+
+    def get(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # Get last Training
+        a_training = IATraining.objects.filter(
+            model=serializer.validated_data.get('model_id')
+        ).order_by('-created_at').first()
+        # Get results
+        ia_results = IATrainingResults.objects.filter(
+            training_model=a_training.id).order_by('-created_at').first()
+
+        return Response(
+            status=status.HTTP_200_OK,
+            data={
+                'accuracy': ia_results.accuracy,
+                'auc': ia_results.auc,
+                'loss': ia_results.loss,
+                'val_loss': ia_results.val_loss,
+                'precision': ia_results.precision,
+                'recall': ia_results.recall,
+                'settings': ia_results.settings
             }
         )

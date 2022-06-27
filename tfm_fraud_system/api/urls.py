@@ -10,4 +10,5 @@ urlpatterns = [
     url(r'^models/$', view=views.IAModelListApiView.as_view(), name='model_list'),
     url(r'^models/(?P<pk>[\w\-]+)/$', view=views.IAModelDetailApiView.as_view(), name='model_detail'),
     url(r'^training/$', view=views.IATrainingApiView.as_view(), name='model_training'),
+    url(r'^results/$', view=views.ResultsDataApiView.as_view(), name='model_results'),
 ]
