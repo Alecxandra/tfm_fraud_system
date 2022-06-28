@@ -142,16 +142,12 @@ class IATrainingApiView(APIView):
 
 
 class ResultsDataApiView(APIView):
-    serializer_class = serializers.ResultsDataSerializer
 
-    def get(self, request):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
+    def get(self, request, model_id):
 
         # Get last Training
-        a_training = IATraining.objects.filter(
-            model=serializer.validated_data.get('model_id')
-        ).order_by('-created_at').first()
+        a_training = IATraining.objects.filter(model=model_id).order_by('-created_at').first()
+
         # Get results
         ia_results = IATrainingResults.objects.filter(
             training_model=a_training.id).order_by('-created_at').first()

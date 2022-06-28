@@ -150,6 +150,8 @@ def svm_classifier_training(packet):
         X_cols = dataframe.loc[:, dataframe.columns != Y_col].columns
 
         # Encode string variables
+
+        # TODO revisar que hace si se le envian datos numéricos
         x_dataframe = dataframe[X_cols].apply(LabelEncoder().fit_transform)
 
         # Data normalization
