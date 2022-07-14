@@ -59,11 +59,11 @@ class SVMClassifierModel:
                 tol=self.settings.get('tol', 0.001),  # Stopping crierion
                 cache_size=self.settings.get('cache_size', 200),  # Size of kernel cache
                 class_weight=self.settings.get('class_weight', None),  # The weight of each class
-                verbose=self.settings.get('verbose', False),  # Enable verbose output
+                verbose=self.settings.get('verbose', True),  # Enable verbose output
                 max_iter=self.settings.get('max_iter', - 1),  # Hard limit on iterations
                 decision_function_shape=self.settings.get('decision_function_shape', 'ovr'),  # One-vs-rest or one-vs-one
                 break_ties=self.settings.get('break_ties', False),  # How to handle breaking ties
-                random_state=self.settings.get('random_state', None)
+                random_state=self.settings.get('random_state', None),
             )
 
 

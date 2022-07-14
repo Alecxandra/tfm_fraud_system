@@ -63,7 +63,7 @@ def save_customers():
             Transaction.objects.create(**transaction_data)
 
 
-@celery_app.task()
+@celery_app.task(soft_time_limit=7200, time_limit=7200)
 def generate_test_data(packet):
     # Llamar el comando para generar los archivos con datos
 
