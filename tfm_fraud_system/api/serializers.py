@@ -38,3 +38,28 @@ class IAModelTrainingSerializer(serializers.Serializer):
 
 class ResultsDataSerializer(serializers.Serializer):
     model_id = serializers.CharField(required=True)
+
+
+class SetProductionSerializer(serializers.Serializer):
+    model_id = serializers.CharField(required=True)
+
+
+class TransactionSerializer(serializers.Serializer):
+    transaction_number = serializers.CharField(required=True)
+    transaction_date = serializers.CharField(required=True)
+    unix_time = serializers.IntegerField(required=True)
+    category = serializers.CharField(required=True)
+    amt = serializers.FloatField(required=True)
+    merchant = serializers.CharField(required=True)
+    merch_lat = serializers.FloatField(required=True)
+    merch_long = serializers.FloatField(required=True)
+    customer = serializers.JSONField(required=True)
+
+
+class FileUploadDataSerializer(serializers.Serializer):
+    file = serializers.FileField(required=True)
+
+    class Meta:
+        fields = ['file']
+
+

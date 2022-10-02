@@ -34,7 +34,11 @@ def neural_network_classifier_training(packet):
         X_cols = dataframe.loc[:, dataframe.columns != Y_col].columns
 
         # Encode string variables
-        x_dataframe = dataframe[X_cols].apply(LabelEncoder().fit_transform)
+        encoder = LabelEncoder()
+        # x_dataframe = dataframe[X_cols].apply(LabelEncoder().fit_transform)
+        x_dataframe = dataframe[X_cols].apply(encoder.fit_transform)
+        np.save('classes.npy', encoder.classes_)
+        print("encoder save")
         print(x_dataframe.head())
 
         # Data normalization
